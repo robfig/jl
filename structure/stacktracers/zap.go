@@ -3,7 +3,7 @@ package stacktracers
 import (
 	"strings"
 
-	"github.com/koenbollen/jl/structure"
+	"github.com/robfig/jl/structure"
 )
 
 type zap struct {

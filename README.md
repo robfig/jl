@@ -1,6 +1,6 @@
 # ![jl — JSON Logs](.github/logo.png)
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/koenbollen/jl)](https://goreportcard.com/report/github.com/koenbollen/jl)
+[![Go Report Card](https://goreportcard.com/badge/github.com/robfig/jl)](https://goreportcard.com/report/github.com/robfig/jl)
 
 **`jl` is a development tool for working with structured JSON logging.**
 
@@ -20,7 +20,7 @@ A code snippets says more than a thousand words:
        INFO: Hello, world!!
     WARNING: skipping file [file=empty.txt]
 
-([more examples](https://github.com/koenbollen/jl/tree/master/examples))
+([more examples](https://github.com/robfig/jl/tree/master/examples))
 
 ## Installation
 
@@ -35,7 +35,7 @@ It works!
 #### Linux:
 
 ```bash
-$ curl -LO https://github.com/koenbollen/jl/releases/download/v1.4.0/jl_linux_amd64
+$ curl -LO https://github.com/robfig/jl/releases/download/v1.4.0/jl_linux_amd64
 $ sudo install jl_linux_amd64 /usr/bin/jl && rm jl_linux_amd64
 $ echo '{"msg": "It works!"}' | jl
 It works!
@@ -44,8 +44,8 @@ It works!
 #### Others:
 
 Alternatively you can fetch a binary from the
-[latest release](https://github.com/koenbollen/jl/releases) or install the
-latest development version from source: `go install github.com/koenbollen/jl@latest` (requires Go 1.17+).
+[latest release](https://github.com/robfig/jl/releases) or install the
+latest development version from source: `go install github.com/robfig/jl@latest` (requires Go 1.17+).
 
 ## Usage
 
@@ -77,4 +77,4 @@ You can add any option to the JL_OPTS environment variable, ex:
 known formats as possible.
 
 Is `jl` not compatible with your structured logging? Please let me
-know by [creating an issue](https://github.com/koenbollen/jl/issues/new).
+know by [creating an issue](https://github.com/robfig/jl/issues/new).

@@ -10,11 +10,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/koenbollen/jl/djson"
-	"github.com/koenbollen/jl/stream"
-	"github.com/koenbollen/jl/structure"
+	"github.com/robfig/jl/djson"
+	"github.com/robfig/jl/stream"
+	"github.com/robfig/jl/structure"
 
-	_ "github.com/koenbollen/jl/structure/stacktracers"
+	_ "github.com/robfig/jl/structure/stacktracers"
 )
 
 func main() {

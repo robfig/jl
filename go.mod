@@ -1,4 +1,4 @@
-module github.com/koenbollen/jl
+module github.com/robfig/jl
 
 go 1.19
 

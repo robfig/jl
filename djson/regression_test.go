@@ -3,8 +3,8 @@ package djson_test
 import (
 	"testing"
 
-	"github.com/koenbollen/jl/djson"
-	"github.com/koenbollen/jl/structure"
+	"github.com/robfig/jl/djson"
+	"github.com/robfig/jl/structure"
 )
 
 func TestInvalidTimestampFormat(t *testing.T) {

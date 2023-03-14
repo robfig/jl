@@ -8,7 +8,7 @@ import (
 	"testing"
 	"testing/iotest"
 
-	"github.com/koenbollen/jl/stream"
+	"github.com/robfig/jl/stream"
 )
 
 func TestStream(t *testing.T) {

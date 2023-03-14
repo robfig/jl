@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/koenbollen/jl/structure"
+	"github.com/robfig/jl/structure"
 )
 
 const example = `{

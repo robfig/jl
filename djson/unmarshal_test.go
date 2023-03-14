@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/koenbollen/jl/djson"
+	"github.com/robfig/jl/djson"
 )
 
 func TestUnmarshal(t *testing.T) {
