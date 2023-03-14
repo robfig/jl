@@ -43,6 +43,9 @@ Formatting Options:
   --exclude-fields <fields>
                     Always exclude these json keys (comma separated
                     list)
+  --obj-fields <fields>
+                    If present and a JSON object, printed in entirety
+                    after a newline.
 
 You can add any option to the JL_OPTS environment variable, ex:
   export JL_OPTS="--no-color"
@@ -54,7 +57,7 @@ Example:
 
 var version = "v1.5.0"
 
-func cli() (files []string, color, showPrefix, showSuffix, showFields bool, includeFields string, excludeFields string, maxFieldLength int) {
+func cli() (files []string, color, showPrefix, showSuffix, showFields bool, includeFields string, excludeFields string, objFields string, maxFieldLength int) {
 	argv := append(os.Args[1:], strings.Split(os.Getenv("JL_OPTS"), " ")...)
 	arguments, err := docopt.Parse(usage, argv, true, "jl "+version, false)
 	if err != nil {
@@ -68,6 +71,7 @@ func cli() (files []string, color, showPrefix, showSuffix, showFields bool, incl
 	maxFieldLength, _ = strconv.Atoi(arguments["--max-field-length"].(string))
 	includeFields, _ = arguments["--include-fields"].(string)
 	excludeFields, _ = arguments["--exclude-fields"].(string)
+	objFields, _ = arguments["--obj-fields"].(string)
 	files = arguments["FILE"].([]string)
 	return
 }

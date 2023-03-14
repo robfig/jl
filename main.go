@@ -18,7 +18,7 @@ import (
 )
 
 func main() {
-	files, color, showPrefix, showSuffix, showFields, includeFields, excludeFields, maxFieldLength := cli()
+	files, color, showPrefix, showSuffix, showFields, includeFields, excludeFields, objFields, maxFieldLength := cli()
 	formatter, err := structure.NewFormatter(os.Stdout, "")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "invalid format: %v\n", err)
@@ -32,6 +32,7 @@ func main() {
 	formatter.MaxFieldLength = maxFieldLength
 	formatter.IncludeFields = includeFields
 	formatter.ExcludeFields = append(formatter.ExcludeFields, strings.Split(excludeFields, ",")...)
+	formatter.ObjFields = append(formatter.ObjFields, strings.Split(objFields, ",")...)
 
 	r, err := openFiles(files)
 	if err != nil {

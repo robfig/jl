@@ -30,6 +30,8 @@ var defaultExcludes = []string{
 	"@timestamp", "hostname", "level", "message", "msg", "name", "pid", "severity", "text", "time", "timestamp", "ts", "v",
 }
 
+var defaultObjFields = []string{"record"}
+
 // NewLine contains ['\n']
 var NewLine = []byte("\n")
 
@@ -46,6 +48,7 @@ type Formatter struct {
 	ShowSuffix     bool
 	IncludeFields  string
 	ExcludeFields  []string
+	ObjFields  []string
 }
 
 // NewFormatter compiles the given fmt as a go template and returns a Formatter
@@ -68,6 +71,7 @@ func NewFormatter(w io.Writer, fmt string) (*Formatter, error) {
 		ShowSuffix:     true,
 		IncludeFields:  "",
 		ExcludeFields:  defaultExcludes,
+		ObjFields: defaultObjFields,
 	}, nil
 }
 
@@ -86,7 +90,7 @@ func (f *Formatter) Format(entry *Entry, raw json.RawMessage, prefix, suffix []b
 		return err
 	}
 
-	f.outputFields(entry, raw)
+	trailer := f.outputFields(entry, raw)
 
 	err = f.outputSimple(suffix, f.ShowSuffix)
 	if err != nil {
@@ -99,7 +103,19 @@ func (f *Formatter) Format(entry *Entry, raw json.RawMessage, prefix, suffix []b
 	}
 
 	_, err = f.output.Write(NewLine)
-	return err
+	if err != nil {
+		return err
+	}
+
+	if trailer != nil {
+		enc := json.NewEncoder(f.output)
+		enc.SetEscapeHTML(false)
+		enc.SetIndent("\t", "\t")
+		f.output.Write([]byte("\t"))
+		enc.Encode(trailer)
+	}
+
+	return nil
 }
 
 func (f *Formatter) enhance(entry *Entry) {
@@ -140,9 +156,9 @@ func (f *Formatter) outputSimple(txt []byte, toggle bool) error {
 	return nil
 }
 
-func (f *Formatter) outputFields(entry *Entry, raw json.RawMessage) {
+func (f *Formatter) outputFields(entry *Entry, raw json.RawMessage) map[string]any {
 	if !f.ShowFields {
-		return
+		return nil
 	}
 	fields := make(map[string]interface{})
 	err := json.Unmarshal(raw, &fields)
@@ -155,10 +171,12 @@ func (f *Formatter) outputFields(entry *Entry, raw json.RawMessage) {
 	}
 
 	output := make([]string, 0)
+	var trailer map[string]interface{}
 	if err == nil {
 		path := ""
-		for key, value := range walkFields(fields, "") {
-			if _, ok := value.(map[string]interface{}); ok {
+		for key, value := range f.walkFields(fields, "") {
+			if value, ok := value.(map[string]interface{}); ok {
+				trailer = value
 				continue
 			}
 			if _, ok := value.([]interface{}); ok {
@@ -178,6 +196,7 @@ func (f *Formatter) outputFields(entry *Entry, raw json.RawMessage) {
 			fmt.Fprintf(f.output, " %v", output)
 		}
 	}
+	return trailer
 }
 
 func (f *Formatter) shouldSkipField(field, path string, value interface{}) bool {
@@ -203,14 +222,17 @@ func contains(lst []string, val string) bool {
 	return false
 }
 
-func walkFields(fields map[string]interface{}, path string) map[string]interface{} {
+func (f *Formatter) walkFields(fields map[string]interface{}, path string) map[string]interface{} {
 	result := make(map[string]interface{})
 	for key, value := range fields {
 		if path != "" {
 			key = path + "." + key
+		} else if contains(f.ObjFields, key) {
+			result[key] = value
+			continue
 		}
 		if nested, ok := value.(map[string]interface{}); ok {
-			for k, v := range walkFields(nested, key) {
+			for k, v := range f.walkFields(nested, key) {
 				result[k] = v
 			}
 		} else {
