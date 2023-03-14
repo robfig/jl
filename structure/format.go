@@ -1,6 +1,7 @@
 package structure
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -90,7 +91,7 @@ func (f *Formatter) Format(entry *Entry, raw json.RawMessage, prefix, suffix []b
 		return err
 	}
 
-	trailer := f.outputFields(entry, raw)
+	trailerJSON, trailerMultiline := f.outputFields(entry, raw)
 
 	err = f.outputSimple(suffix, f.ShowSuffix)
 	if err != nil {
@@ -107,12 +108,17 @@ func (f *Formatter) Format(entry *Entry, raw json.RawMessage, prefix, suffix []b
 		return err
 	}
 
-	if trailer != nil {
+	if trailerMultiline != "" {
+		f.output.Write([]byte{'\t'})
+		f.output.Write(bytes.ReplaceAll([]byte(trailerMultiline), []byte("\n"), []byte("\n\t")))
+		f.output.Write(NewLine)
+	}
+	if trailerJSON != nil {
 		enc := json.NewEncoder(f.output)
 		enc.SetEscapeHTML(false)
 		enc.SetIndent("\t", "\t")
 		f.output.Write([]byte("\t"))
-		enc.Encode(trailer)
+		enc.Encode(trailerJSON)
 	}
 
 	return nil
@@ -156,9 +162,9 @@ func (f *Formatter) outputSimple(txt []byte, toggle bool) error {
 	return nil
 }
 
-func (f *Formatter) outputFields(entry *Entry, raw json.RawMessage) map[string]any {
+func (f *Formatter) outputFields(entry *Entry, raw json.RawMessage) (map[string]any, string) {
 	if !f.ShowFields {
-		return nil
+		return nil, ""
 	}
 	fields := make(map[string]interface{})
 	err := json.Unmarshal(raw, &fields)
@@ -171,13 +177,20 @@ func (f *Formatter) outputFields(entry *Entry, raw json.RawMessage) map[string]a
 	}
 
 	output := make([]string, 0)
-	var trailer map[string]interface{}
+	var trailerJSON map[string]interface{}
+	var trailerMultiline string
 	if err == nil {
 		path := ""
 		for key, value := range f.walkFields(fields, "") {
-			if value, ok := value.(map[string]interface{}); ok {
-				trailer = value
-				continue
+			if contains(f.ObjFields, key) {
+				switch value := value.(type) {
+				case map[string]interface{}:
+					trailerJSON = value
+					continue
+				case string:
+					trailerMultiline = value
+					continue
+				}
 			}
 			if _, ok := value.([]interface{}); ok {
 				continue
@@ -196,7 +209,7 @@ func (f *Formatter) outputFields(entry *Entry, raw json.RawMessage) map[string]a
 			fmt.Fprintf(f.output, " %v", output)
 		}
 	}
-	return trailer
+	return trailerJSON, trailerMultiline
 }
 
 func (f *Formatter) shouldSkipField(field, path string, value interface{}) bool {
