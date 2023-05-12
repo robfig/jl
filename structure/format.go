@@ -49,7 +49,7 @@ type Formatter struct {
 	ShowSuffix     bool
 	IncludeFields  string
 	ExcludeFields  []string
-	ObjFields  []string
+	ObjFields      []string
 }
 
 // NewFormatter compiles the given fmt as a go template and returns a Formatter
@@ -72,7 +72,7 @@ func NewFormatter(w io.Writer, fmt string) (*Formatter, error) {
 		ShowSuffix:     true,
 		IncludeFields:  "",
 		ExcludeFields:  defaultExcludes,
-		ObjFields: defaultObjFields,
+		ObjFields:      defaultObjFields,
 	}, nil
 }
 
@@ -170,8 +170,10 @@ func (f *Formatter) outputFields(entry *Entry, raw json.RawMessage) (map[string]
 	err := json.Unmarshal(raw, &fields)
 
 	if labels, ok := fields["labels"]; ok {
-		for k, v := range labels.(map[string]interface{}) {
-			fields[k] = v
+		if labelmap, ok := labels.(map[string]interface{}); ok {
+			for k, v := range labelmap {
+				fields[k] = v
+			}
 		}
 		delete(fields, "labels")
 	}
