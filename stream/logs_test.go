@@ -1,6 +1,7 @@
 package stream_test
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"reflect"
@@ -103,5 +104,21 @@ func TestErrors(t *testing.T) {
 	err := s.Err()
 	if err != iotest.ErrTimeout {
 		t.Errorf("expecting ErrTimeout, got %v", err)
+	}
+}
+
+func TestLongLine(t *testing.T) {
+	t.Parallel()
+	s := stream.New(strings.NewReader(strings.Repeat("a", bufio.MaxScanTokenSize+1)+"\n"))
+	line := <-s.Lines()
+	if line == nil {
+		t.Errorf("expected to get the line out, got nil")
+	}
+	if line != nil && len(line.Raw) != bufio.MaxScanTokenSize+1 {
+		t.Errorf("expected to get the line out, got length %v", len(line.Raw))
+	}
+	err := s.Err()
+	if err != nil {
+		t.Errorf("no error expected on long line, got: %+v", err)
 	}
 }

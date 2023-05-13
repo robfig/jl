@@ -28,26 +28,36 @@ type Stream interface {
 }
 
 type stream struct {
-	scanner *bufio.Scanner
-	result  chan *Line
-	stop    chan struct{}
+	reader *bufio.Reader
+	result chan *Line
+	stop   chan struct{}
+	err    error
 }
 
 // New will construct a new Stream and start it.
 func New(r io.Reader) Stream {
-	scanner := bufio.NewScanner(r)
 	l := &stream{
-		scanner: scanner,
-		result:  make(chan *Line),
-		stop:    make(chan struct{}),
+		reader: bufio.NewReaderSize(r, bufio.MaxScanTokenSize),
+		result: make(chan *Line),
+		stop:   make(chan struct{}),
 	}
 	go l.run()
 	return l
 }
 
 func (l *stream) run() {
-	for l.scanner.Scan() {
-		raw := l.scanner.Bytes()
+	for {
+		raw, err := l.reader.ReadBytes('\n')
+		raw = bytes.TrimSuffix(raw, []byte("\n"))
+		if err != nil {
+			if err != io.EOF {
+				l.err = err
+				break
+			}
+			if len(raw) == 0 {
+				break // break on EOF after processing the last line
+			}
+		}
 		json := l.parse(raw)
 		prefix, suffix := split(raw, json)
 		line := &Line{
@@ -113,7 +123,7 @@ func (l *stream) Lines() <-chan *Line {
 }
 
 func (l *stream) Err() error {
-	return l.scanner.Err()
+	return l.err
 }
 
 func split(raw, json []byte) (prefix, suffix []byte) {
